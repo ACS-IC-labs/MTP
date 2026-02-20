@@ -257,3 +257,30 @@ def interactive(
 ) -> None:
     """Start an interactive session to decrypt ciphertexts using key"""
     Application(ciphertexts, Key(key), results_filename).run()
+
+
+def load_from_result(
+    ciphertexts: Iterable[bytearray], load_filename: str, results_filename: str
+) -> None:
+    """
+    Load a previous session from a result file and continue decryption
+
+    Parses the result.json file to reconstruct the key,
+    then opens an interactive session to continue work.
+    """
+    with open(load_filename, "r") as f:
+        result = json.load(f)
+
+    # Reconstruct key from hex string
+    # Each key byte is represented as 2 hex characters (or "__" for unknown)
+    key_hex = result["key"]
+    key = []
+    for i in range(0, len(key_hex), 2):
+        hex_pair = key_hex[i : i + 2]
+        if hex_pair == "__":
+            key.append(None)
+        else:
+            key.append(int(hex_pair, 16))
+
+    # Start interactive session with loaded key
+    Application(ciphertexts, Key(key), results_filename).run()

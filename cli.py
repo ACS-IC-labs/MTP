@@ -3,7 +3,7 @@
 import sys
 import argparse
 
-from manytime import many_time_pad_attack
+from manytime import many_time_pad_attack, load_and_continue
 
 
 def main() -> None:
@@ -25,6 +25,14 @@ def main() -> None:
         default="result.json",
         help="filename to export decryptions to",
     )
+    parser.add_argument(
+        "-l",
+        "--load",
+        type=str,
+        dest="load_file",
+        default=None,
+        help="filename to load previous results from",
+    )
     args = parser.parse_args()
 
     with open(args.file, "r") as f:
@@ -35,7 +43,10 @@ def main() -> None:
     except ValueError as error:
         sys.exit("Invalid hexadecimal: {error}")
 
-    many_time_pad_attack(ciphertexts, args.output_file)
+    if args.load_file:
+        load_and_continue(ciphertexts, args.load_file, args.output_file)
+    else:
+        many_time_pad_attack(ciphertexts, args.output_file)
 
 
 if __name__ == "__main__":

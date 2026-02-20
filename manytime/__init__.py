@@ -3,12 +3,14 @@ Many-time module
 """
 
 from manytime import analysis
-from manytime.interactive import interactive
+from manytime.interactive import interactive, load_from_result
 
 from typing import Iterable
 
 
-def many_time_pad_attack(ciphertexts: Iterable[bytearray], results_filename: str) -> None:
+def many_time_pad_attack(
+    ciphertexts: Iterable[bytearray], results_filename: str
+) -> None:
     """
     Perform a Many-time pad attack
 
@@ -17,3 +19,15 @@ def many_time_pad_attack(ciphertexts: Iterable[bytearray], results_filename: str
     """
     partial_key = analysis.recover_key(ciphertexts)
     interactive(ciphertexts, partial_key, results_filename)
+
+
+def load_and_continue(
+    ciphertexts: Iterable[bytearray], load_filename: str, results_filename: str
+) -> None:
+    """
+    Load a previous session from result file and continue decryption
+
+    Reconstructs the key and ciphertexts from the result file,
+    then opens an interactive session to continue decryption.
+    """
+    load_from_result(ciphertexts, load_filename, results_filename)

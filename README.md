@@ -9,13 +9,13 @@ MTP Interactive uses automated cryptanalysis to present a partial decryption whi
 Python 3.11+ required
 
 ```
-pip3 install mtp
+pip3 install .
 ```
 
 ## Usage
 
 ```
-mtp examples/sample.ciphertexts
+mtp ciphertext.txt
 ```
 
 [![asciicast](https://asciinema.org/a/204705.png)](https://asciinema.org/a/204705)
@@ -38,12 +38,12 @@ Window resizing and text size changes are supported.
 
 ## Development
 
-Use a Python 3.11 virtual environment to develop on this project
+Use a Python +3.11 virtual environment to develop on this project
 
 ```
 virtualenv venv -p python3.11
 source ./venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
 ```
 
 Pull Requests and Issues welcome!
