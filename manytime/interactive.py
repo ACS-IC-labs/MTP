@@ -13,12 +13,29 @@ from manytime.models import Key, DecryptEdit, MenuButton
 from typing import Iterable, Optional, Tuple, NoReturn, Union, Any, List
 
 
-def partial_decrypt(key: Key, ciphertext: bytearray, unknown_character: Union[Tuple[str, str], str] = ('unknown', '_')) -> Iterable:
+def partial_decrypt(
+    key: Key,
+    ciphertext: bytearray,
+    unknown_character: Union[Tuple[str, str], str] = ("unknown", "_"),
+) -> Iterable:
     """
     Decrypt ciphertext using key
     Decrypting a letter using an unknown key element will result in unknown_character
     """
-    return [chr(k ^ c) if k is not None else unknown_character for k, c in zip(key, ciphertext)]
+    decrypted = []
+    for k, c in zip(key, ciphertext):
+        if k is None:
+            decrypted.append(unknown_character)
+            continue
+
+        ch = chr(k ^ c)
+        # Keep UI stable by replacing non-printable chars with placeholder
+        if ch.isprintable() and ch not in "\t\n\r\x0b\x0c":
+            decrypted.append(ch)
+        else:
+            decrypted.append(unknown_character)
+
+    return decrypted
 
 
 class DecryptionsListBox(urwid.ListBox):
@@ -35,12 +52,17 @@ class DecryptionsListBox(urwid.ListBox):
         self.application = application
         self.x_pos: int = 0
 
-        partial_decryptions = [partial_decrypt(self.application.key, c) for c in self.application.ciphertexts]
+        partial_decryptions = [
+            partial_decrypt(self.application.key, c)
+            for c in self.application.ciphertexts
+        ]
 
-        body = urwid.SimpleFocusListWalker([
-            self._create_decryption_with_line_number(index + 1, decryption)
-            for index, decryption in enumerate(partial_decryptions)
-        ])
+        body = urwid.SimpleFocusListWalker(
+            [
+                self._create_decryption_with_line_number(index + 1, decryption)
+                for index, decryption in enumerate(partial_decryptions)
+            ]
+        )
         super().__init__(body)
 
     def _edit_decryption(self, letter: str) -> None:
@@ -61,10 +83,17 @@ class DecryptionsListBox(urwid.ListBox):
             # Letters which are longer, for example "shift left" are not key presses we want to deal with.
             # All special characters are handled elsewhere, this code handles letters and delete keys
             # therefore we ignore all others.
-            self.application.key[index] = None if letter in self.REMOVE_KEYS or len(letter) > 1 else ord(letter) ^ ciphertext[index]
+            self.application.key[index] = (
+                None
+                if letter in self.REMOVE_KEYS or len(letter) > 1
+                else ord(letter) ^ ciphertext[index]
+            )
 
         # Update all decryptions
-        new_decryptions = [partial_decrypt(self.application.key, c) for c in self.application.ciphertexts]
+        new_decryptions = [
+            partial_decrypt(self.application.key, c)
+            for c in self.application.ciphertexts
+        ]
         for row, decryption in zip(self.body, new_decryptions):
             decryption_widget = row[1]
             decryption_widget.set_edit_text(decryption)
@@ -95,32 +124,44 @@ class DecryptionsListBox(urwid.ListBox):
 
         super().keypress(size, key)
 
-    def _create_decryption_with_line_number(self, line_number: int, text: Iterable[Any]) -> urwid.Columns:
+    def _create_decryption_with_line_number(
+        self, line_number: int, text: Iterable[Any]
+    ) -> urwid.Columns:
         """Create the decryption edit text with a prefixed line number"""
         right_side_spaces = 3
         left_side_spaces = 2
         max_line_number = len(self.application.ciphertexts) + 1
-        line_num_col_width = left_side_spaces + len(str(max_line_number)) + right_side_spaces
+        line_num_col_width = (
+            left_side_spaces + len(str(max_line_number)) + right_side_spaces
+        )
 
-        line_num_widget = urwid.Text(('line_number', str(line_number) + ' ' * right_side_spaces), align='right')
+        line_num_widget = urwid.Text(
+            ("line_number", str(line_number) + " " * right_side_spaces), align="right"
+        )
         decryption_edit_widget = DecryptEdit(self, edit_text=text)
 
-        return urwid.Columns([
-            (line_num_col_width, line_num_widget),
-            # Can't use pack here, it breaks the formatting
-            ('weight', 1, decryption_edit_widget)
-        ], focus_column=1)
+        return urwid.Columns(
+            [
+                (line_num_col_width, line_num_widget),
+                # Can't use pack here, it breaks the formatting
+                ("weight", 1, decryption_edit_widget),
+            ],
+            focus_column=1,
+        )
 
 
 class Application:
     """An application to decipher ciphertexts using key, interactively"""
+
     palette = [
-        ('unknown', 'dark red,bold', 'black'),
-        ('line_number', 'light gray,bold', 'black'),
-        ('reversed', 'standout', 'black'),
+        ("unknown", "dark red,bold", "black"),
+        ("line_number", "light gray,bold", "black"),
+        ("reversed", "standout", "black"),
     ]
 
-    def __init__(self, ciphertexts: Iterable[bytearray], key: Key, results_filename: str) -> None:
+    def __init__(
+        self, ciphertexts: Iterable[bytearray], key: Key, results_filename: str
+    ) -> None:
         # Store the values in the application for ease of exporting
         self.ciphertexts = ciphertexts
         self.key = key
@@ -130,18 +171,25 @@ class Application:
         self.decryption_widget = DecryptionsListBox(self)
 
         # The body is the visible element on the screen
-        self._body = urwid.Pile([
-            ('weight', 1, urwid.LineBox(self.decryption_widget, title="Decryptions", title_align="left")),
-            ('pack',  urwid.LineBox(self.key_widget, title="Key", title_align="left"))
-        ])  # We 'pack' the key widget to place it at the bottom of the screen
+        self._body = urwid.Pile(
+            [
+                (
+                    "weight",
+                    1,
+                    urwid.LineBox(
+                        self.decryption_widget, title="Decryptions", title_align="left"
+                    ),
+                ),
+                (
+                    "pack",
+                    urwid.LineBox(self.key_widget, title="Key", title_align="left"),
+                ),
+            ]
+        )  # We 'pack' the key widget to place it at the bottom of the screen
 
         self.menu_widget = self._create_menu_widget()
 
-        self._loop = urwid.MainLoop(
-            self._body,
-            palette=self.palette,
-            pop_ups=True
-        )
+        self._loop = urwid.MainLoop(self._body, palette=self.palette, pop_ups=True)
 
     def run(self) -> None:
         """Run the main loop of the interface"""
@@ -150,9 +198,12 @@ class Application:
     def open_menu(self) -> None:
         """Overlays the menu ontop of the main screen"""
         self._loop.widget = urwid.Overlay(
-            self.menu_widget, self._body,
-            align='center', valign='middle',
-            width=22, height=7
+            self.menu_widget,
+            self._body,
+            align="center",
+            valign="middle",
+            width=22,
+            height=7,
         )
 
     def reset_layout(self, *args) -> None:
@@ -168,12 +219,15 @@ class Application:
         """Export the state to a file"""
         state = {
             "decryptions": [
-                ''.join(partial_decrypt(self.key, ciphertext, unknown_character='_')) for ciphertext in self.ciphertexts
+                "".join(partial_decrypt(self.key, ciphertext, unknown_character="_"))
+                for ciphertext in self.ciphertexts
             ],
-            "key": ''.join([item for sublist in self.key.to_plain_text() for item in sublist])
+            "key": "".join(
+                [item for sublist in self.key.to_plain_text() for item in sublist]
+            ),
         }
 
-        with open(self.results_filename, 'w') as f:
+        with open(self.results_filename, "w") as f:
             json.dump(state, f)
 
         # Hide the menu
@@ -181,15 +235,25 @@ class Application:
 
     def _create_menu_widget(self) -> urwid.LineBox:
         """Create the menu widget"""
-        body = urwid.ListBox([
-            urwid.AttrMap(MenuButton("Export", self.export), None, focus_map='reversed'),
-            urwid.AttrMap(MenuButton("Quit", self.quit), None, focus_map='reversed'),
-            urwid.AttrMap(MenuButton("Close", self.reset_layout), None, focus_map='reversed')
-        ])
+        body = urwid.ListBox(
+            [
+                urwid.AttrMap(
+                    MenuButton("Export", self.export), None, focus_map="reversed"
+                ),
+                urwid.AttrMap(
+                    MenuButton("Quit", self.quit), None, focus_map="reversed"
+                ),
+                urwid.AttrMap(
+                    MenuButton("Close", self.reset_layout), None, focus_map="reversed"
+                ),
+            ]
+        )
 
         return urwid.LineBox(body, title="Menu", title_align="center")
 
 
-def interactive(ciphertexts: Iterable[bytearray], key: List[Optional[int]], results_filename: str) -> None:
+def interactive(
+    ciphertexts: Iterable[bytearray], key: List[Optional[int]], results_filename: str
+) -> None:
     """Start an interactive session to decrypt ciphertexts using key"""
     Application(ciphertexts, Key(key), results_filename).run()
