@@ -14,7 +14,7 @@ authors = [
   { name = "razvanalex", email = "razvansmadu@gmail.com" }
 ]
 dependencies = [
-  "urwid==2.1.2"
+  "urwid==2.6.16"
 ]
 
 [project.urls]
