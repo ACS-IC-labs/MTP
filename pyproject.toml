@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mtp"
+version = "1.1.0"
+description = "Many-Time Pad Interactive"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Cameron Lonsdale", email = "cameron.lonsdale@gmail.com" },
+  { name = "razvanalex", email = "razvansmadu@gmail.com" }
+]
+dependencies = [
+  "urwid==2.1.2"
+]
+
+[project.urls]
+Homepage = "https://github.com/CameronLonsdale/MTP"
+
+[project.scripts]
+mtp = "mtp:main"
+
+[tool.setuptools]
+packages = { find = {} }

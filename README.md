@@ -6,7 +6,7 @@ MTP Interactive uses automated cryptanalysis to present a partial decryption whi
 
 ## Install
 
-Python 3.7+ required
+Python 3.11+ required
 
 ```
 pip3 install mtp
