@@ -21,7 +21,7 @@ dependencies = [
 Homepage = "https://github.com/CameronLonsdale/MTP"
 
 [project.scripts]
-mtp = "mtp:main"
+mtp = "manytime:main"
 
 [tool.setuptools]
 packages = { find = {} }
