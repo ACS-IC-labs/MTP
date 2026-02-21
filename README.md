@@ -14,13 +14,27 @@ pip3 install .
 
 ## Usage
 
+Start a new decryption session:
+
 ```
 mtp ciphertext.txt
 ```
 
+Resume a previous session from a saved result file:
+
+```
+mtp ciphertext.txt --load result.json
+```
+
+Specify a custom output filename:
+
+```
+mtp ciphertext.txt -o custom_output.json
+```
+
 [![asciicast](https://asciinema.org/a/204705.png)](https://asciinema.org/a/204705)
 
-### Intstructions
+### Instructions
 
 Cursor movement is similar to Sublime Text:
  - Left, Right, Up and Down for simple movement
@@ -31,6 +45,8 @@ Letters can be entered using the keyboard any time.
 
 The menu can be opened with the escape key. The "Export" button in the menu
 will write the JSON state of the decryption to a file named 'result.json' by default. Use the -o flag to specify the desired filename for export.
+
+You can resume a previous session at any time by using the `-l` or `--load` flag with the exported result file path.
 
 You can exit the program cleanly using the "Quit" menu button.
 
